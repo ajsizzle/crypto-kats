@@ -1,20 +1,63 @@
 .catBox {
-    background-color: #e2efff;
-    border-radius: 10px;
-    padding-top: 50px;
-    padding-left: 65px;
-    padding-bottom: 100px;
+  background-color: #e2efff;
+  border-radius: 10px;
+  padding-top: 50px;
+  padding-left: 65px;
+  padding-bottom: 100px;
 }
 
 .cattributes {
-    padding: 25px;
-    background-color: #ededed;
-    border-radius: 10px;
+  padding: 25px;
+  background-color: #ededed;
+  border-radius: 10px;
 }
 
 .dnaDiv {
-    position: absolute;
-    left:20px;
-    bottom: 5px;
+  position: absolute;
+  left: 20px;
+  bottom: 5px;
+}
 
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 500;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: rgb(35, 205, 106);
+  margin: 35% auto;
+  padding: 20px;
+  width: 70%;
+  box-shadow: 0 5px 8px 0 rgba(0, 0, 0, 0.2), 0 7px 20px 0 rgba(0, 0, 0, 0.15);
+  animation-name: modalopen;
+  animation-duration: 1.5s;
+}
+
+.closeBtn {
+  color: silver;
+  float: right;
+  font-size: 30px;
+}
+
+.closeBtn:hover,
+.closeBtn:focus {
+  color: rgba(0, 0, 0);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@keyframes modalopen {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

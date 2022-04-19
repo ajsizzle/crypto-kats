@@ -7,13 +7,19 @@ import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 contract Katcontract is IERC721, Ownable {
 
     /*
-     * @dev List of Token name and symbol
+     * @dev List of Token constants.
      */
     string public constant tokenName = "CryptoKats";
     string public constant tokenSymbol = "CK";
+    uint256 public constant CREATION_LIMIT_GEN0 = 10;
 
     /*
-     * @dev Event where new CryptoKat is created
+     * @dev Counter to limit to minting of Gen0 NFTs.
+     */
+    uint256 public gen0Counter;
+
+    /*
+     * @dev Event where new CryptoKat is created.
      */
     event Birth(
         address owner, 
@@ -55,6 +61,10 @@ contract Katcontract is IERC721, Ownable {
      * @dev Gen0 creation of a CryptoKat NFT.
      */
     function createKatGen0(uint256 _genes) public onlyOwner returns (uint256) {
+        require(gen0Counter < CREATION_LIMIT_GEN0);
+
+        gen0Counter++;
+
         return _createKat(0, 0, 0, _genes, msg.sender);
     }
 

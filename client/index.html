@@ -8,6 +8,7 @@
   <script src="assets/bootstrap/js/popper.js"></script>
   <script src="assets/bootstrap/js/bootstrap.min.js"></script>
   <script src="assets/js/web3.min.js"></script>
+  <script src="./abi.js"></script>
 
   <link rel="stylesheet" href="assets/css/animations.css">
   <link rel="stylesheet" href="assets/css/mystyle.css">
@@ -147,11 +148,11 @@
                     <br>
             <div class="container">
                 <div class="btn-group">
-                    <button class="btn btn-primary  tsp-1 m-1 light-b-shadow" onclick="randomCat()"><b>Get random kitty</b></button>
-                    <button class="btn btn-primary  ml-2 tsp-1 m-1 light-b-shadow" onclick="defaultCat()"><b>Default kitty</b></button>
+                    <button class="btn btn-primary  tsp-1 m-1 light-b-shadow" onclick="randomCat()"><b>Get Random CryptoKat</b></button>
+                    <button class="btn btn-primary  ml-2 tsp-1 m-1 light-b-shadow" onclick="defaultCat()"><b>Default CryptoKat</b></button>
                 </div>
-                <div class=" group-btn float-right">
-                    <button class="btn btn-success mr-5  tsp-1 m-1 light-b-shadow" onclick="createKitty()"><b>Create Kitty</b></button>
+                <div class=" group-btn float-left">
+                    <button class="btn btn-success mr-5  tsp-1 m-1 light-b-shadow" onclick="createKat()"><b>Create CryptoKat</b></button>
                 </div>
                 <br>
         
@@ -163,6 +164,18 @@
             </div>
             <br>
 
+        </div>
+        <div id="modalBirth" class="modal">
+            <div class="modal-content">
+                <span class="closeBtn">&times;</span>
+                <p>Successful CryptoKat Birth!</p>
+                <!-- CryptoKat details: Genes, Token ID, User Address -->
+                <div class="modalDetails">
+                    <label><b>Genes: </b><span id="birthGenes"></span></label>
+                    <label><b>Token ID: </b><span id="birthTokenId"></span></label>
+                    <label><b>Owner: </b><span id="birthOwner"></span></label>
+                </div>
+            </div>
         </div>
 
 
