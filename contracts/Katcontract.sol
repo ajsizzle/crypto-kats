@@ -87,6 +87,26 @@ contract Katcontract is IERC721, Ownable {
     }
 
     /*
+     * @dev Returns properties of CryptoKat NFT by tokenId.
+     */
+    function getKat(uint256 _id) external view returns(
+        uint256 genes,
+        uint256 birthTime,
+        uint256 motherId,
+        uint256 fatherId,
+        uint256 generation
+        ) {
+
+            Kat storage kat = kats[_id];
+
+            genes = uint256(kat.genes);
+            birthTime = uint256(kat.birthTime);
+            motherId = uint256(kat.motherId);
+            fatherId = uint256(kat.fatherId);
+            generation = uint256(kat.generation);
+        }
+
+    /*
      * @dev Returns the total number of tokens in circulation.
      */    
     function balanceOf(address owner) external view returns (uint256 balance){
