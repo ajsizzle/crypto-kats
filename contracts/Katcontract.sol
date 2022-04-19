@@ -2,8 +2,9 @@
 pragma solidity 0.8.13;
 
 import "./IERC721.sol";
+import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
-contract Katcontract is IERC721 {
+contract Katcontract is IERC721, Ownable {
 
     /*
      * @dev List of Token name and symbol
@@ -12,11 +13,22 @@ contract Katcontract is IERC721 {
     string public constant tokenSymbol = "CK";
 
     /*
+     * @dev Event where new CryptoKat is created
+     */
+    event Birth(
+        address owner, 
+        uint256 katId, 
+        uint256 motherId, 
+        uint256 fatherId, 
+        uint256 genes
+        );
+
+    /*
      * @dev Struct of CryptoKat NFT
      */
     struct Kat {
         uint256 genes;
-        uint64 birthtime;
+        uint64 birthTime;
         uint32 motherId;
         uint32 fatherId;
         uint16 generation;
@@ -38,6 +50,41 @@ contract Katcontract is IERC721 {
     mapping(uint256 => address) internal idToOwner;
 
     /*************************************************************/
+
+    /* 
+     * @dev Gen0 creation of a CryptoKat NFT.
+     */
+    function createKatGen0(uint256 _genes) public onlyOwner returns (uint256) {
+        return _createKat(0, 0, 0, _genes, msg.sender);
+    }
+
+    /*
+     * @dev Creation of new Kat.
+     */
+    function _createKat(
+        uint256 _motherId,
+        uint256 _fatherId,
+        uint256 _generation,
+        uint256 _genes,
+        address _owner
+    ) private returns (uint256) {
+        Kat memory _kat = Kat({
+            genes: _genes,
+            birthTime: uint64(block.timestamp),
+            motherId: uint32(_motherId),
+            fatherId: uint32(_fatherId),
+            generation: uint16(_generation)
+        });
+
+        kats.push(_kat);
+        uint256 newKatId = kats.length - 1;
+
+        emit Birth(_owner, newKatId, _motherId, _fatherId, _genes);
+
+        _transfer(address(0), _owner, newKatId);
+
+        return newKatId;
+    }
 
     /*
      * @dev Returns the total number of tokens in circulation.
