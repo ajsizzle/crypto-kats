@@ -55,6 +55,16 @@ contract Katcontract is IERC721, Ownable {
      */
     mapping(uint256 => address) internal idToOwner;
 
+    /*
+     * @dev Mapping of approved addresses to transfer tokens.
+     */
+    mapping (uint256 => address) public idToApproved;
+
+    /*
+     * @dev Mapping from owner address to mapping of operator addresses.
+     */
+    mapping (address => mapping (address => bool)) private _operatorApprovals;
+
     /*************************************************************/
 
     /* 
@@ -188,5 +198,34 @@ contract Katcontract is IERC721, Ownable {
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
         return idToOwner[_tokenId] == _claimant;
     }
+
+    /**
+     *  @notice Change or reaffirm the approved address for an NFT
+     * @dev The zero address indicates there is no approved address.
+     *  Throws unless `msg.sender` is the current NFT owner, or an authorized
+     *  operator of the current owner.
+     * @param _approved The new approved NFT controller
+     * @param _tokenId The NFT to approve
+     */
+    function approve(address _approved, uint256 _tokenId) external {
+        address owner = idToOwner[_tokenId];
+        require(_approved != owner, "Owner is already approved");
+
+        idToApproved[_tokenId] = _approved;
+        emit Approval(owner, _approved, _tokenId);
+    }
+
+    /**
+     * @notice Enable or disable approval for a third party ("operator") to manage
+     *  all of `msg.sender`'s assets
+     * @dev Emits the ApprovalForAll event. The contract MUST allow
+     *  multiple operators per owner.
+     * @param _operator Address to add to the set of authorized operators
+     * @param _approved True if the operator is approved, false to revoke approval
+     */
+    function setApprovalForAll(address _operator, bool _approved) external {
+        
+    }
+
 
 }
