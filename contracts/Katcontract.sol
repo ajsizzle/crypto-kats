@@ -224,8 +224,31 @@ contract Katcontract is IERC721, Ownable {
      * @param _approved True if the operator is approved, false to revoke approval
      */
     function setApprovalForAll(address _operator, bool _approved) external {
-        
+        _operatorApprovals[msg.sender][_operator] = _approved;
+
+        emit ApprovalForAll(msg.sender, _operator, _approved);
     }
 
+    /**
+     * @notice Get the approved address for a single NFT
+     * @dev Throws if `_tokenId` is not a valid NFT.
+     * @param _tokenId The NFT to find the approved address for
+     * @return The approved address for this NFT, or the zero address if there is none
+     */
+    function getApproved(uint256 _tokenId) external view returns (address) {
+        require(_tokenId < kats.length); // Token must exist
+
+        return idToApproved[_tokenId];
+    }
+
+    /**
+     * @notice Query if an address is an authorized operator for another address
+     * @param _owner The address that owns the NFTs
+     * @param _operator The address that acts on behalf of the owner
+     * @return True if `_operator` is an approved operator for `_owner`, false otherwise
+     */
+    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
+        return _operatorApprovals[_owner][_operator];
+    }
 
 }
