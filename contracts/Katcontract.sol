@@ -186,24 +186,18 @@ contract Katcontract is IERC721, Ownable {
         if (_from != address(0)) {
             // decrease token count from sender
             ownedTokenCount[_from]--;
+            delete idToApproved[_tokenId];
         }
 
         // Emit transfer event
         emit Transfer(_from, _to, _tokenId);
     }
 
-    /*
-     * @dev Verifies `msg.sender` owns the NFT.
-     */
-    function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
-        return idToOwner[_tokenId] == _claimant;
-    }
-
     /**
-     *  @notice Change or reaffirm the approved address for an NFT
+     * @notice Change or reaffirm the approved address for an NFT
      * @dev The zero address indicates there is no approved address.
-     *  Throws unless `msg.sender` is the current NFT owner, or an authorized
-     *  operator of the current owner.
+     * Throws unless `msg.sender` is the current NFT owner, or an authorized
+     * operator of the current owner.
      * @param _approved The new approved NFT controller
      * @param _tokenId The NFT to approve
      */
@@ -217,9 +211,9 @@ contract Katcontract is IERC721, Ownable {
 
     /**
      * @notice Enable or disable approval for a third party ("operator") to manage
-     *  all of `msg.sender`'s assets
+     * all of `msg.sender`'s assets
      * @dev Emits the ApprovalForAll event. The contract MUST allow
-     *  multiple operators per owner.
+     * multiple operators per owner.
      * @param _operator Address to add to the set of authorized operators
      * @param _approved True if the operator is approved, false to revoke approval
      */
@@ -250,5 +244,13 @@ contract Katcontract is IERC721, Ownable {
     function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
         return _operatorApprovals[_owner][_operator];
     }
+
+    /*
+     * @dev Verifies `msg.sender` owns the NFT.
+     */
+    function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
+        return idToOwner[_tokenId] == _claimant;
+    }
+
 
 }
