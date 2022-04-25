@@ -8,17 +8,26 @@ import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 contract Katcontract is IERC721, Ownable {
 
     /*
-     * @dev List of Token constants.
+     * @dev List of Token & Interface constants.
      */
     string public constant tokenName = "CryptoKats";
     string public constant tokenSymbol = "CK";
     uint256 public constant CREATION_LIMIT_GEN0 = 10;
     bytes4 internal constant MAGIC_ERC721_RECEIVED = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 private constant _INTERFACE_ID_ERC615 = 0x01ffc9a7;
 
     /*
      * @dev Counter to limit to minting of Gen0 NFTs.
      */
     uint256 public gen0Counter;
+
+    /*
+     * @dev Verifies adoption of ERC721 & ERC615 Standards
+     */
+    function supportsInterface(bytes4 _interfaceId) external pure returns (bool) {
+        return ( _interfaceId == _INTERFACE_ID_ERC721 || _interfaceId == _INTERFACE_ID_ERC615);
+    }
 
     /*
      * @dev Event where new CryptoKat is created.
@@ -268,6 +277,9 @@ contract Katcontract is IERC721, Ownable {
         _transfer(_from, _to, _tokenId);
     }
 
+    /**
+     * @dev Verifies receiver can handle payload and perfoms transfer from.
+     */
     function _safeTransfer(address _from, address _to, uint256 _tokenId, bytes memory _data) internal {
         _transfer(_from, _to, _tokenId);
         require(_checkERC721Support(_from, _to, _tokenId, _data) );
@@ -305,11 +317,6 @@ contract Katcontract is IERC721, Ownable {
      * @param _tokenId The NFT to transfer
      */
     function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
-        require(_to != address(0));
-        require(msg.sender == _from || _approvedFor(msg.sender, _tokenId) || isApprovedForAll(_from, msg.sender));
-        require(_owns(_from, _tokenId));
-        require(_tokenId < kats.length);
-
         _safeTransfer(_from, _to, _tokenId, "");
     }
 
