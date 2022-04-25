@@ -2,6 +2,7 @@
 pragma solidity 0.8.13;
 
 import "./IERC721.sol";
+import "./IERC721Receiver.sol";
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 contract Katcontract is IERC721, Ownable {
@@ -12,6 +13,7 @@ contract Katcontract is IERC721, Ownable {
     string public constant tokenName = "CryptoKats";
     string public constant tokenSymbol = "CK";
     uint256 public constant CREATION_LIMIT_GEN0 = 10;
+    bytes4 internal constant MAGIC_ERC721_RECEIVED = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
 
     /*
      * @dev Counter to limit to minting of Gen0 NFTs.
@@ -241,8 +243,74 @@ contract Katcontract is IERC721, Ownable {
      * @param _operator The address that acts on behalf of the owner
      * @return True if `_operator` is an approved operator for `_owner`, false otherwise
      */
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
+    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
         return _operatorApprovals[_owner][_operator];
+    }
+
+    /**
+     * @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE
+     *  TO CONFIRM THAT `_to` IS CAPABLE OF RECEIVING NFTS OR ELSE
+     *  THEY MAY BE PERMANENTLY LOST
+     * @dev Throws unless `msg.sender` is the current owner, an authorized
+     *  operator, or the approved address for this NFT. Throws if `_from` is
+     *  not the current owner. Throws if `_to` is the zero address. Throws if
+     *  `_tokenId` is not a valid NFT.
+     * @param _from The current owner of the NFT
+     * @param _to The new owner
+     * @param _tokenId The NFT to transfer
+     */
+    function transferFrom(address _from, address _to, uint256 _tokenId) external {
+        require(_to != address(0));
+        require(msg.sender == _from || _approvedFor(msg.sender, _tokenId) || isApprovedForAll(_from, msg.sender));
+        require(_owns(_from, _tokenId));
+        require(_tokenId < kats.length);
+
+        _transfer(_from, _to, _tokenId);
+    }
+
+    function _safeTransfer(address _from, address _to, uint256 _tokenId, bytes memory _data) internal {
+        _transfer(_from, _to, _tokenId);
+        require(_checkERC721Support(_from, _to, _tokenId, _data) );
+    }
+
+    /**
+     * @notice Transfers the ownership of an NFT from one address to another address
+     * @dev Throws unless `msg.sender` is the current owner, an authorized
+     *  operator, or the approved address for this NFT. Throws if `_from` is
+     *  not the current owner. Throws if `_to` is the zero address. Throws if
+     *  `_tokenId` is not a valid NFT. When transfer is complete, this function
+     *  checks if `_to` is a smart contract (code size > 0). If so, it calls
+     *  `onERC721Received` on `_to` and throws if the return value is not
+     *  `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`.
+     * @param _from The current owner of the NFT
+     * @param _to The new owner
+     * @param _tokenId The NFT to transfer
+     * @param _data Additional data with no specified format, sent in call to `_to`
+     */
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external {
+        require(_to != address(0));
+        require(msg.sender == _from || _approvedFor(msg.sender, _tokenId) || isApprovedForAll(_from, msg.sender));
+        require(_owns(_from, _tokenId));
+        require(_tokenId < kats.length);
+
+        _safeTransfer(_from, _to, _tokenId, _data);
+    }
+
+    /**
+     * @notice Transfers the ownership of an NFT from one address to another address
+     * @dev This works identically to the other function with an extra data parameter,
+     *  except this function just sets data to "".
+     * @param _from The current owner of the NFT
+     * @param _to The new owner
+     * @param _tokenId The NFT to transfer
+     */
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
+        require(_to != address(0));
+        require(msg.sender == _from || _approvedFor(msg.sender, _tokenId) || isApprovedForAll(_from, msg.sender));
+        require(_owns(_from, _tokenId));
+        require(_tokenId < kats.length);
+
+        _safeTransfer(_from, _to, _tokenId, "");
     }
 
     /*
@@ -252,5 +320,43 @@ contract Katcontract is IERC721, Ownable {
         return idToOwner[_tokenId] == _claimant;
     }
 
+    /*
+     * @dev Set or reaffirm the approved address for an NFT.
+     */
+    function _approve(uint256 _tokenId, address _approved) internal {
+        idToApproved[_tokenId] = _approved;
+    }
+
+    /*
+     * @dev Verifies approved address is approved for NFT.
+     */
+    function _approvedFor(address _claimant, uint256 _tokenId) internal view returns (bool) {
+        return idToApproved[_tokenId] == _claimant;
+    }
+
+    /*
+     * @dev Checks _to address is an approved ERC721 token and can handle payload.
+     */
+    function _checkERC721Support(address _from, address _to, uint256 _tokenId, bytes memory _data) internal view returns (bool) {
+        if (!_isContract(_to)) {
+            return true;
+        }
+
+        bytes4 returnData = IERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, _data);
+        return returnData == MAGIC_ERC721_RECEIVED;
+    }
+
+    /*
+     * @dev Returns size of data in _to address.
+     */
+    function _isContract(address _to) view internal returns (bool) {
+        uint32 size;
+        assembly{
+            // get the size of the code that is in the address.
+            size := extcodesize(_to)
+        }
+        return size > 0;
+
+    }
 
 }
