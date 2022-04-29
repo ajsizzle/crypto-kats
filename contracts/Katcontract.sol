@@ -7,7 +7,7 @@ import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 contract Katcontract is IERC721, Ownable {
 
-    /*
+    /**
      * @dev List of Token & Interface constants.
      */
     string public constant tokenName = "CryptoKats";
@@ -17,19 +17,19 @@ contract Katcontract is IERC721, Ownable {
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
     bytes4 private constant _INTERFACE_ID_ERC615 = 0x01ffc9a7;
 
-    /*
+    /**
      * @dev Counter to limit to minting of Gen0 NFTs.
      */
     uint256 public gen0Counter;
 
-    /*
+    /**
      * @dev Verifies adoption of ERC721 & ERC615 Standards
      */
     function supportsInterface(bytes4 _interfaceId) external pure returns (bool) {
         return ( _interfaceId == _INTERFACE_ID_ERC721 || _interfaceId == _INTERFACE_ID_ERC615);
     }
 
-    /*
+    /**
      * @dev Event where new CryptoKat is created.
      */
     event Birth(
@@ -40,7 +40,7 @@ contract Katcontract is IERC721, Ownable {
         uint256 genes
         );
 
-    /*
+    /**
      * @dev Struct of CryptoKat NFT
      */
     struct Kat {
@@ -51,34 +51,64 @@ contract Katcontract is IERC721, Ownable {
         uint16 generation;
     }
 
-    /*
+    /**
+     * @dev Breeding function that takes motherId and fatherId to create new CryptoKat NFT
+     */
+    function breed(uint256 _motherId, uint256 _fatherId) public returns (uint256) {
+      // check ownership
+      require(msg.sender == idToOwner[_motherId] && msg.sender == idToOwner[_fatherId], "You must own both parents to breed");
+
+      uint256 _motherGen = kats[_motherId].generation;
+      uint256 _fatherGen = kats[_fatherId].generation;
+      uint256 _childGen = 0;
+
+      if(_fatherGen == _motherGen && _fatherGen < 1) {
+        _childGen = 1;
+      }
+      else {
+        if (_fatherGen > _motherGen) {
+          _childGen = _fatherGen + 1;
+        }
+        else {
+          _childGen = _motherGen + 1;
+        }
+      }
+
+      uint256 _motherDna = kats[_motherId].genes;
+      uint256 _fatherDna = kats[_fatherId].genes;
+      uint256 newDna = _mixDna(_motherDna, _fatherDna);
+
+      return _createKat(_motherId, _fatherId, _childGen, newDna, msg.sender);
+    }
+
+    /**
      * @dev Array of all CryptoKat NFTs.
      */
     Kat[] internal kats;
 
-    /*
+    /**
      * @dev Mapping from owner address to count of their tokens.
      */
     mapping(address => uint256) private ownedTokenCount;
 
-    /*
+    /**
      * @dev Mapping from tokenId to the address that owns it.
      */
     mapping(uint256 => address) internal idToOwner;
 
-    /*
+    /**
      * @dev Mapping of approved addresses to transfer tokens.
      */
     mapping (uint256 => address) public idToApproved;
 
-    /*
+    /**
      * @dev Mapping from owner address to mapping of operator addresses.
      */
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     /*************************************************************/
 
-    /* 
+    /**
      * @dev Gen0 creation of a CryptoKat NFT.
      */
     function createKatGen0(uint256 _genes) public onlyOwner returns (uint256) {
@@ -89,7 +119,7 @@ contract Katcontract is IERC721, Ownable {
         return _createKat(0, 0, 0, _genes, msg.sender);
     }
 
-    /*
+    /**
      * @dev Creation of new Kat.
      */
     function _createKat(
@@ -117,7 +147,7 @@ contract Katcontract is IERC721, Ownable {
         return newKatId;
     }
 
-    /*
+    /**
      * @dev Returns properties of CryptoKat NFT by tokenId.
      */
     function getKat(uint256 _id) external view returns(
@@ -137,7 +167,7 @@ contract Katcontract is IERC721, Ownable {
             generation = uint256(kat.generation);
         }
 
-    /*
+    /**
      * @dev Returns the total number of tokens in circulation.
      */    
     function balanceOf(address owner) external view returns (uint256 balance){
@@ -152,28 +182,28 @@ contract Katcontract is IERC721, Ownable {
         return kats.length;
     }
 
-    /*
+    /**
      * @dev Returns the name of the token.
      */
     function name() external pure returns (string memory _tokenName){
        _tokenName = tokenName;
     }
 
-    /*
+    /**
      * @dev Returns the symbol of the token.
      */
     function symbol() external pure returns (string memory _tokenSymbol){
         _tokenSymbol = tokenSymbol;
     }
 
-    /*
+    /**
      * @dev Returns the owner of the `tokenId` token.
      */
     function ownerOf(uint256 _tokenId) external view returns (address owner){
         return idToOwner[_tokenId];
     }
 
-    /* 
+    /**
      * @dev Transfers `tokenId` token from `msg.sender` to `to`.
      * Emits a transfer event
      */
@@ -185,7 +215,7 @@ contract Katcontract is IERC721, Ownable {
         _transfer(msg.sender, _to, _tokenId);
     }
 
-    /*
+    /**
      * @dev Internal handling of ownedTokenCount from `msg.sender` to `to`.
      */
     function _transfer(address _from, address _to, uint256 _tokenId) internal {
@@ -320,28 +350,28 @@ contract Katcontract is IERC721, Ownable {
         _safeTransfer(_from, _to, _tokenId, "");
     }
 
-    /*
+    /**
      * @dev Verifies `msg.sender` owns the NFT.
      */
     function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
         return idToOwner[_tokenId] == _claimant;
     }
 
-    /*
+    /**
      * @dev Set or reaffirm the approved address for an NFT.
      */
     function _approve(uint256 _tokenId, address _approved) internal {
         idToApproved[_tokenId] = _approved;
     }
 
-    /*
+    /**
      * @dev Verifies approved address is approved for NFT.
      */
     function _approvedFor(address _claimant, uint256 _tokenId) internal view returns (bool) {
         return idToApproved[_tokenId] == _claimant;
     }
 
-    /*
+    /**
      * @dev Checks _to address is an approved ERC721 token and can handle payload.
      */
     function _checkERC721Support(address _from, address _to, uint256 _tokenId, bytes memory _data) internal view returns (bool) {
@@ -353,7 +383,7 @@ contract Katcontract is IERC721, Ownable {
         return returnData == MAGIC_ERC721_RECEIVED;
     }
 
-    /*
+    /**
      * @dev Returns size of data in _to address.
      */
     function _isContract(address _to) view internal returns (bool) {
@@ -364,6 +394,18 @@ contract Katcontract is IERC721, Ownable {
         }
         return size > 0;
 
+    }
+
+    /**
+     * @dev Mixes the motherDna and fatherDna to produce
+     */
+    function _mixDna(uint256 _motherDna, uint256 _fatherDna) internal pure returns (uint256) {
+        uint256 _firstHalf = _motherDna / 100000000;
+        uint256 _secondHalf = _fatherDna % 100000000;
+
+        uint256 newDna = _firstHalf * 100000000;
+        newDna = newDna + _secondHalf;
+        return newDna;
     }
 
 }
